@@ -1,83 +1,43 @@
 package z2;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.PriorityQueue;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 class Drukarka {
-    private PriorityQueue<Integer> kolejka = new PriorityQueue<>((a, b) -> Integer.compare(b, a));
-
     public void start(String inputFile, String outputFile) {
-        try (BufferedReader br = new BufferedReader(new FileReader(inputFile));
-             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile))) {
+        try {
+            File inFile = new File(inputFile);
+            Scanner fileScanner = new Scanner(inFile);
+            PrintWriter fileWriter = new PrintWriter(outputFile);
 
-            String line;
-            while ((line = br.readLine()) != null) {
-                processLine(line);
-            }
-
-            while (!kolejka.isEmpty()) {
-                int element = kolejka.poll();
-                bw.write(Integer.toString(element));
-                bw.newLine();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void processLine(String line) {
-        switch (line) {
-            case "drukuj":
-                if (!kolejka.isEmpty()) {
-                    int highestPriority = kolejka.poll();
-                    writeToFile(highestPriority);
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                if (line.equals("drukuj")) {
+                    printResults(fileWriter);
                 } else {
-                    writeToFile("brak");
+                    processNumericValue(line);
                 }
-                break;
-            case "koniec":
-                while (!kolejka.isEmpty()) {
-                    int element = kolejka.poll();
-                    writeToFile(element);
-                }
-                break;
-            default:
-                if (!line.trim().isEmpty() && line.matches("\\{\\d+\\}")) {
-                    try {
-                        int priority = Integer.parseInt(line.substring(1, line.length() - 1));
-                        kolejka.add(priority);
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
-                    }
-                }
+            }
+
+            fileScanner.close();
+            fileWriter.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found: " + inputFile);
         }
     }
 
-
-    private void writeToFile(int value) {
+    private void processNumericValue(String line) {
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("src/z2/wynik.txt", true));
-            bw.write(Integer.toString(value));
-            bw.newLine();
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            int value = Integer.parseInt(line.trim());
+            System.out.println(value);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid numeric value: " + line);
         }
     }
 
-    private void writeToFile(String value) {
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("src/z2/wynik.txt", true));
-            bw.write(value);
-            bw.newLine();
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void printResults(PrintWriter writer) {
+        System.out.println("Printing results...");
     }
 }
