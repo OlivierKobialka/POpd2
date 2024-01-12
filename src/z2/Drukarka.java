@@ -1,43 +1,81 @@
 package z2;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.Scanner;
+import java.io.*;
+import java.util.PriorityQueue;
 
-class Drukarka {
+public class Drukarka {
+
+    private PriorityQueue<Integer> kolejka = new PriorityQueue<>((a, b) -> Integer.compare(b, a));
+
     public void start(String inputFile, String outputFile) {
-        try {
-            File inFile = new File(inputFile);
-            Scanner fileScanner = new Scanner(inFile);
-            PrintWriter fileWriter = new PrintWriter(outputFile);
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFile));
+             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile))) {
 
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine();
-                if (line.equals("drukuj")) {
-                    printResults(fileWriter);
-                } else {
-                    processNumericValue(line);
+            String line;
+            while ((line = br.readLine()) != null) {
+                try {
+                    processLine(line);
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Blad");
                 }
             }
 
-            fileScanner.close();
-            fileWriter.close();
+            while (!kolejka.isEmpty()) {
+                int number = kolejka.poll();
+                bw.write(Integer.toString(number));
+                bw.newLine();
+            }
+
         } catch (FileNotFoundException e) {
-            System.out.println("File not found: " + inputFile);
+            try (PrintWriter writer = new PrintWriter(outputFile)) {
+                writer.println("Nie znaleziono pliku");
+            } catch (FileNotFoundException fileNotFoundException) {
+                fileNotFoundException.printStackTrace();
+            }
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private void processNumericValue(String line) {
+    private void processLine(String line) {
         try {
-            int value = Integer.parseInt(line.trim());
-            System.out.println(value);
+            int number = Integer.parseInt(line);
+            kolejka.add(number);
         } catch (NumberFormatException e) {
-            System.out.println("Invalid numeric value: " + line);
+            if (line.equals("drukuj")) {
+                if (!kolejka.isEmpty()) {
+                    int highestPriorityNumber = kolejka.poll();
+                    writeResultToFile(highestPriorityNumber);
+                } else {
+                    writeResultToFile("brak");
+                }
+            } else if (line.equals("koniec")) {
+                while (!kolejka.isEmpty()) {
+                    int num = kolejka.poll();
+                    writeResultToFile(num);
+                }
+            } else {
+                throw new IllegalArgumentException("blad");
+            }
         }
     }
 
-    private void printResults(PrintWriter writer) {
-        System.out.println("Printing results...");
+    private void writeResultToFile(int result) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("src/z2/wynik.txt", true))) {
+            bw.write(Integer.toString(result));
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeResultToFile(String result) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("src/z2/wynik.txt", true))) {
+            bw.write(result);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
