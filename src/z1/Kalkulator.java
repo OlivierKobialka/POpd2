@@ -1,10 +1,11 @@
 package z1;
 
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class Kalkulator {
-    public void oblicz(String inFile, String outFile) {
+    public void oblicz(String inFile, String outFile) throws FileNotFoundException {
         try {
             Scanner scanner = new Scanner(new java.io.File(inFile));
             PrintWriter writer = new PrintWriter(outFile);
@@ -41,7 +42,11 @@ public class Kalkulator {
             scanner.close();
             writer.close();
         } catch (java.io.FileNotFoundException e) {
-            System.out.println("Nie znaleziono pliku " + inFile);
+            try (PrintWriter writer = new PrintWriter(outFile)) {
+                writer.println("Nie znaleziono pliku");
+            } catch (FileNotFoundException fileNotFoundException) {
+                fileNotFoundException.printStackTrace();
+            }
         }
     }
 }
